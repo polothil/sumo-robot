@@ -8,7 +8,9 @@ const int IN2LB = 5;
 const int IN3RB = 4;
 const int IN4RF = 3;
 
-float duration, distance;
+int count = 10;
+
+float duration, distance, temp;
 bool compensate = true;
 const float fflf = 0.9;   // frictionFactorLeftForward
 const float ffrf = 1;     // frictionFactorRightForward
@@ -19,6 +21,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
+  temp = getDistance();
   delay(1000);  // as per sumo compat roles if has to be 5000
   backward(255);
   delay(700);
@@ -47,25 +50,12 @@ void loop() {
     delay(800);
   }
 
-  // Write a pulse to the HC-SR04 Trigger Pin
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  // Measure the response from the HC-SR04 Echo Pin
-  duration = pulseIn(ECHO_PIN, HIGH);
-
-  // Determine distance from duration
-  // Using 343 metres per second as speed of sound
-  distance = (duration / 2) * 0.0343;
+  distance = getDistance();
 
   Serial.print("distance: ");
   Serial.println(distance);
 
-  if (IR_front != 0 && IR_back != 0) {
-
+  if (IR_front != 0 && IR_back != 0 && count < 0) {
     if (distance > 35) {
       Serial.println("looking around...");
       shortSpin();
@@ -78,6 +68,32 @@ void loop() {
       compensate = true;
     }
   }
+
+  Serial.print("temp: ");
+  Serial.println(temp);
+
+  if (abs(distance - temp) < 2 || distance > 100) {
+    count--;
+  } else count = 5;
+
+  temp = distance;
+}
+
+float getDistance() {
+  // Write a pulse to the HC-SR04 Trigger Pin
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  // Measure the response from the HC-SR04 Echo Pin
+  float dur = pulseIn(ECHO_PIN, HIGH);
+
+  // Determine distance from duration
+  // Using 343 metres per second as speed of sound
+  int dist = round((dur / 2) * 0.0343);
+  return dist;
 }
 
 void forward(int speed) {
@@ -154,4 +170,3 @@ void shortSpin() {
   delay(30);
   stop(100);
 }
-
