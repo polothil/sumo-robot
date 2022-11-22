@@ -31,17 +31,20 @@ void loop() {
 
   if (IR_back == 0 && IR_front == 0) {
     Serial.println("Out of the arena");
-    stop();
+    stop(10000);
     // break;
   } else if (IR_front == 0) {
-    stop();
+    stop(100);
     backward(255);
     delay(800);
     rotateRight(255);
     delay(200);
   } else if (IR_back == 0) {
-    stop();
+    stop(100);
+    rotateLeft(255);
+    delay(200);
     forward(255);
+    delay(800);
   }
 
   // Write a pulse to the HC-SR04 Trigger Pin
@@ -118,32 +121,6 @@ void spin(int speed) {
   analogWrite(IN4RF, speed);
 }
 
-void stop() {
-  analogWrite(IN1LF, 0);
-  analogWrite(IN2LB, 0);
-  analogWrite(IN3RB, 0);
-  analogWrite(IN4RF, 0);
-  delay(100);
-}
-
-void turnAround() {
-  spin(255);
-  delay(250);
-  stop();
-}
-
-void thirtyDegreeSpin() {
-  spin(255);
-  delay(95);
-  stop();
-}
-
-void shortSpin() {
-  spin(255);
-  delay(30);
-  stop();
-}
-
 void compensateSpin() {
   analogWrite(IN1LF, 255);
   analogWrite(IN2LB, 0);
@@ -151,3 +128,30 @@ void compensateSpin() {
   analogWrite(IN4RF, 0);
   delay(15);
 }
+
+void stop(int duration) {
+  analogWrite(IN1LF, 0);
+  analogWrite(IN2LB, 0);
+  analogWrite(IN3RB, 0);
+  analogWrite(IN4RF, 0);
+  delay(duration);
+}
+
+void turnAround() {
+  spin(255);
+  delay(250);
+  stop(100);
+}
+
+void thirtyDegreeSpin() {
+  spin(255);
+  delay(95);
+  stop(100);
+}
+
+void shortSpin() {
+  spin(255);
+  delay(30);
+  stop(100);
+}
+

@@ -1,0 +1,7 @@
+{
+    "port": "COM9",
+    "configuration": "cpu=atmega328old",
+    "board": "arduino:avr:nano",
+    "programmer": "arduino:avrisp",
+    "sketch": "Arduino codes\\omusV2\\omusV2.ino"
+}
