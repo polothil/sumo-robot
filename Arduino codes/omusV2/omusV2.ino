@@ -1,5 +1,11 @@
-#define TRIG_PIN 10
+#include "NewPing.h"
+
+#define TRIGGER_PIN 10
 #define ECHO_PIN 9
+#define MAX_DISTANCE 100
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+
 #define IR_sensor_front 8  // front sensor
 #define IR_sensor_back 7   // rear senson
 
@@ -9,6 +15,9 @@ const int IN3RB = 4;
 const int IN4RF = 3;
 
 float duration, distance;
+
+int iterations = 10;
+
 bool compensate = true;
 const float fflf = 0.9;   // frictionFactorLeftForward
 const float ffrf = 1;     // frictionFactorRightForward
@@ -17,8 +26,8 @@ const float ffrb = 1;     // frictionFactorRightBackward
 
 void setup() {
   Serial.begin(9600);
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
+  // pinMode(TRIG_PIN, OUTPUT);
+  // pinMode(ECHO_PIN, INPUT);
   delay(1000);  // as per sumo compat roles if has to be 5000
   backward(255);
   delay(700);
@@ -47,26 +56,15 @@ void loop() {
     delay(800);
   }
 
-  // Write a pulse to the HC-SR04 Trigger Pin
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  // Measure the response from the HC-SR04 Echo Pin
-  duration = pulseIn(ECHO_PIN, HIGH);
-
-  // Determine distance from duration
-  // Using 343 metres per second as speed of sound
+  duration = sonar.ping_median(iterations);
   distance = (duration / 2) * 0.0343;
 
   Serial.print("distance: ");
   Serial.println(distance);
 
-  if (IR_front != 0 && IR_back != 0) {
 
-    if (distance > 35) {
+  if (IR_front != 0 && IR_back != 0  ) {
+    if (distance > 35 || distance < 2) {
       Serial.println("looking around...");
       shortSpin();
     } else if (distance < 15) {
@@ -80,6 +78,26 @@ void loop() {
   }
 }
 
+// float getDistance() {
+//   // Write a pulse to the HC-SR04 Trigger Pin
+//   digitalWrite(TRIG_PIN, LOW);
+//   delayMicroseconds(2);
+//   digitalWrite(TRIG_PIN, HIGH);
+//   delayMicroseconds(10);
+//   digitalWrite(TRIG_PIN, LOW);
+
+//   // Measure the response from the HC-SR04 Echo Pin
+//   float dur = pulseIn(ECHO_PIN, HIGH);
+
+//   // Determine distance from duration
+//   // Using 343 metres per second as speed of sound
+//   int dist = round((dur / 2) * 0.0343);
+
+//   Serial.print("distance: ");
+//   Serial.println(dist);
+//   return dist;
+// }
+
 void forward(int speed) {
   Serial.print("forward with speed ");
   Serial.println(speed);
@@ -87,7 +105,7 @@ void forward(int speed) {
   analogWrite(IN2LB, 0);
   analogWrite(IN3RB, 0);
   analogWrite(IN4RF, speed * ffrf);
-  delay(50);
+  delay(10);
 }
 
 void backward(int speed) {  //gets rotated to the right side
@@ -95,7 +113,7 @@ void backward(int speed) {  //gets rotated to the right side
   analogWrite(IN2LB, speed * fflb);
   analogWrite(IN3RB, speed * ffrb);
   analogWrite(IN4RF, 0);
-  delay(50);
+  delay(10);
 }
 
 void rotateLeft(int speed) {
@@ -122,6 +140,7 @@ void spin(int speed) {
 }
 
 void compensateSpin() {
+  Serial.println("compensate spin......");
   analogWrite(IN1LF, 255);
   analogWrite(IN2LB, 0);
   analogWrite(IN3RB, 255);
@@ -152,6 +171,5 @@ void thirtyDegreeSpin() {
 void shortSpin() {
   spin(255);
   delay(30);
-  stop(100);
+  stop(5);
 }
-
